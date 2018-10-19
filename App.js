@@ -1,12 +1,22 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View, TouchableOpacity, AsyncStorage } from 'react-native';
 import { AppLoading } from 'expo';
-import {Provider} from 'react-redux'
-import store from './store'
+import { NativeRouter, Route, Switch } from 'react-router-native';
+import { initMiddleware } from 'devise-axios';
+import { Provider } from 'react-redux';
+import store from './store';
+import FetchUser from './components/FetchUser';
+import Auth from './components/Auth';
+import Yahtzee from './components/Yahtzee';
+import Scores from './components/Scores'
+import ProtectedRoute from './components/ProtectedRoute';
 
-export default class App extends React.Component {
-  state = { isReady: false }
-  
+class App extends React.Component {
+  constructor(props) {
+    super(props)
+    initMiddleware({ storage: AsyncStorage })
+    this.state = { isReady: false }
+  }
 
   getReady = () => {
     return new Promise(resolve => setTimeout(() => resolve("Done"), 3000))
@@ -23,20 +33,20 @@ export default class App extends React.Component {
       )
       return (
         <Provider store={store}>
-        <View style={styles.container}>
-          <Text>Open up App.js to start working on your app!</Text>
-          <Text>Changes you make will automatically reload.</Text>
-        </View>
+          <FetchUser>
+            <NativeRouter>
+              <Switch>
+                <Route exact path="/login" render={ props => <Auth {...props} type="Login" /> } />
+                <Route exact path="/register" render={ props => <Auth {...props} type="Register" /> } />
+                <ProtectedRoute exact path="/" component={Yahtzee} />
+                {/* <ProtectedRoute exact path="/Scores" component={Scores} /> */}
+
+              </Switch>
+            </NativeRouter>
+          </FetchUser>
         </Provider>
       );
   }
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default App;
